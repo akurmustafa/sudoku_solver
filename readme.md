@@ -14,6 +14,19 @@ You need a cpp compiler later than C++11 to be able to recompile source files, i
 In main, Sudoku class expects a 81 length std::string during construction. This string is generated from 9x9 sudoku table whose elements read row wise. It assumes std::string consists of one of the following characters '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'.
 '0' represents empty places in the sudoku table whose value to be found, and other characters represent their integer values. Encode your sudoku table as above int the std::string sudoku_table, then run the program to see result.
 For Instance following table
+| #1 | #2 | #3 | #4 | #5 | #6 | #7 | #8 | #9 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 1   |     | 9   |     |     | 8   |     |     |     |
+|     |     |     |     | 1   | 3   | 8   |     |     |
+|     |     |     |     | 6   | 4   |     |     | 2   |
+| 2   | 7   |     |     |     |     |     |     |     |
+|     | 4   | 8   |     |     |     | 7   |     | 6   |
+|     |     |     |     | 7   |     | 9   | 1   |     |
+| 4   |     | 7   |     | 9   |     |     | 8   |     |
+|     | 9   |     | 8   |     |     |     |     |     |
+|     | 3   |     | 1   |     |     |     |     | 4   |
+
+<!---
 _____________________________________
 | 1 |   | 9 |   |   | 8 |   |   |   |
 _____________________________________
@@ -32,6 +45,8 @@ _____________________________________
 |   | 9 |   | 8 |   |   |   |   |   |
 _____________________________________
 |   | 3 |   | 1 |   |   |   |   | 4 |
+
+-->
 
 can be encoded as following std::string "109008000000013800000004002270000000048000706000070910407090080090800000030100004"
 
