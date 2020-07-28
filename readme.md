@@ -18,8 +18,8 @@ This Project is written in Visual Studio 19, with C++17 compiler. However code s
 You need a cpp compiler later than C++11 to be able to compile source files, in my machine I have used MSVC C++ 17
 
 ### Using
-In main, Sudoku class expects a 81 length '''cpp std::string''' or 81 length '''cpp std::array<int, 81>''' during construction. This string is generated from 9x9 sudoku table whose elements read row wise. It assumes std::string consists of one of the following characters '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'.
-'0' represents empty places in the sudoku table whose value to be found, and other characters represent their integer values. Encode your sudoku table as corresponding characters in the '''cpp std::string''' sudoku_table or put them in '''cpp std::array<int, 81>''' with their integer values (0 for unknown values as before), then run the program to see result.
+In main, Sudoku class expects a 81 length ```std::string``` or 81 length ```std::array<int, 81>``` during construction. This string is generated from 9x9 sudoku table whose elements read row wise. It assumes ```std::string``` consists of one of the following characters '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'.
+'0' represents empty places in the sudoku table whose value to be found, and other characters represent their integer values. Encode your sudoku table as corresponding characters in the ```std::string``` sudoku_table or put them in ```std::array<int, 81>``` with their integer values (0 for unknown values as before), then run the program to see result.
 For Instance following table
 | #1 | #2 | #3 | #4 | #5 | #6 | #7 | #8 | #9 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -56,13 +56,13 @@ _____________________________________
 -->
 
 can be encoded as following 
-'''cpp
+```cpp
 std::string("109008000000013800000004002270000000048000706000070910407090080090800000030100004") 
-'''
+```
 or following 
-'''cpp 
+```cpp 
 std::array<int, 81>{1,0,9,0,0,8,0,0,0,0,0,0,0,1,3,8,0,0,0,0,0,0,0,4,0,0,2,2,7,0,0,0,0,0,0,0,0,4,8,0,0,0,7,0,6,0,0,0,0,7,0,9,1,0,4,0,7,0,9,0,0,8,0,0,9,0,8,0,0,0,0,0,0,3,0,1,0,0,0,0,4}
-'''
+```
 
 ## Deployment
 
