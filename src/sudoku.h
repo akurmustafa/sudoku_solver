@@ -12,14 +12,18 @@
 class Sudoku {
 public:
 	Sudoku(const std::string& data_in);
+
+
 	void print_data() const;
 	void solve(bool print_on = false, int print_every = 100);
+	int check_initial_sudoku_table();
 
 private:
 	Tree* get_cur_guess();
 	Tree* get_cur_guess_parent();
 	int check_map(const std::map<int, int>& cur_map);
 	int one_step();
+	int one_step_v2();
 
 	// members
 	Tree top_estimate_start{ 0, -1 };

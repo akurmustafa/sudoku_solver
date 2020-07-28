@@ -13,9 +13,14 @@ int main()
 	Sudoku sudoku{ sudoku_table };
 	std::cout << "Starting Position\n";
 	sudoku.print_data();
-	sudoku.solve(true);
-	std::cout << "Solution\n";
-	sudoku.print_data();
+	if (sudoku.check_initial_sudoku_table()) {
+		std::cout << "Check the sudoku table, it is not valid!";
+	}
+	else {
+		sudoku.solve(true, 1);
+		std::cout << "Solution\n";
+		sudoku.print_data();
+	}
 
 	return 0;
 }

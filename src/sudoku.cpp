@@ -67,7 +67,6 @@ int Sudoku::one_step() {
 		for (int j = 0; j < 9; ++j) {
 			if (data[i * 9 + j] == 0) {
 				int sum_of_possible_nums{ 135 };  // 11+12+..+18+19
-
 				std::set<int> forbidden_nums{};
 				std::map<int, int> forbidden_nums_idx{};
 				// check same row
@@ -117,6 +116,7 @@ int Sudoku::one_step() {
 				if (contradiction) {
 					return contradiction;
 				}
+
 				if (forbidden_nums.size() == 9) {
 					contradiction = 1;
 					return contradiction;
@@ -142,16 +142,189 @@ int Sudoku::one_step() {
 	return contradiction;
 }
 
+int Sudoku::one_step_v2() {
+	best_possible_estimate_num = 9;
+	int contradiction{ 0 };
+	auto cur_guess = get_cur_guess();
+	std::vector<std::set<int>> sudoku_table_available_nums(81);
+	for (int i = 0; i < 9; ++i) {
+		for (int j = 0; j < 9; ++j) {
+			if (data[i * 9 + j] == 0) {
+				int sum_of_possible_nums{ 135 };  // 11+12+..+18+19
+				std::set<int> available_nums{ 1,2,3,4,5,6,7,8,9 };
+				std::set<int> forbidden_nums{};
+				std::map<int, int> forbidden_nums_idx{};
+				// check same row
+				for (int m = 0; m < 9; ++m) {
+					int cur_idx = i * 9 + m;
+					int cur_val = data[cur_idx];
+					if (cur_val != 0) {
+						forbidden_nums.insert(cur_val);
+						++forbidden_nums_idx[cur_val];
+					}
+				}
+				contradiction = check_map(forbidden_nums_idx);
+				if (contradiction) {
+					return contradiction;
+				}
+
+				forbidden_nums_idx.clear();
+				// check same column
+				for (int m = 0; m < 9; ++m) {
+					int cur_idx = m * 9 + j;
+					int cur_val = data[cur_idx];
+					if (cur_val != 0) {
+						forbidden_nums.insert(cur_val);
+						++forbidden_nums_idx[cur_val];
+					}
+				}
+				contradiction = check_map(forbidden_nums_idx);
+				if (contradiction) {
+					return contradiction;
+				}
+
+				forbidden_nums_idx.clear();
+				// check same square
+				int row_start = (i / 3) * 3;
+				int col_start = (j / 3) * 3;
+				for (int m = 0; m < 3; ++m) {
+					for (int n = 0; n < 3; ++n) {
+						int cur_idx = (row_start + m) * 9 + col_start + n;
+						int cur_val = data[cur_idx];
+						if (cur_val != 0) {
+							forbidden_nums.insert(cur_val);
+							++forbidden_nums_idx[cur_val];
+						}
+					}
+				}
+				contradiction = check_map(forbidden_nums_idx);
+				if (contradiction) {
+					return contradiction;
+				}
+				for (const auto& cur_elem : forbidden_nums) {
+					if (available_nums.count(cur_elem)) {
+						available_nums.erase(cur_elem);
+					}
+					else {
+						std::cout << "shouldn't occur\n";
+					}
+				}
+
+				if (available_nums.size() == 0) {
+					contradiction = 1;
+					return contradiction;
+				}
+				if (best_possible_estimate_num > available_nums.size()) {
+					best_possible_estimate_num = available_nums.size();
+					best_estimate_idx = i * 9 + j;
+					best_estimate_forbiddens = forbidden_nums;
+				}
+				if (available_nums.size() == 1) {  // we can determine number now
+					data[i * 9 + j] = *available_nums.begin();
+					cur_guess->changed_indices.push_back(i * 9 + j);
+					--rem_elem_num;
+				}
+				sudoku_table_available_nums[i * 9 + j] = available_nums;
+			}
+		}
+	}
+
+	// find hidden singles
+	for (int i = 0; i < 9; ++i) {
+		// each row
+		std::map<int, int> each_num_possibilities;
+		for (int j = 0; j < 9; ++j) {
+			auto cur_available_nums = sudoku_table_available_nums[9 * i + j];
+			for (const auto& cur_elem : cur_available_nums) {
+				++each_num_possibilities[cur_elem];
+			}
+		}
+
+		for (int cur_num = 1; cur_num < 10; ++cur_num) {
+			if (each_num_possibilities[cur_num] == 1) {
+				// hidden single found in cur row
+				for (int j = 0; j < 9; ++j) {
+					auto cur_available_nums = sudoku_table_available_nums[9 * i + j];
+					if (cur_available_nums.count(cur_num) == 1 && data[i * 9 + j] == 0) {
+						data[i * 9 + j] = cur_num;
+						cur_guess->changed_indices.push_back(i * 9 + j);
+						--rem_elem_num;
+					}
+				}
+			}
+		}
+
+	}
+
+	for (int j = 0; j < 9; ++j) {
+		// each column
+		std::map<int, int> each_num_possibilities;
+		for (int i = 0; i < 9; ++i) {
+			auto cur_available_nums = sudoku_table_available_nums[9 * i + j];
+			for (const auto& cur_elem : cur_available_nums) {
+				++each_num_possibilities[cur_elem];
+			}
+		}
+
+		for (int cur_num = 1; cur_num < 10; ++cur_num) {
+			if (each_num_possibilities[cur_num] == 1) {
+				// hidden single found in cur column
+				for (int i = 0; i < 9; ++i) {
+					auto cur_available_nums = sudoku_table_available_nums[9 * i + j];
+					if (cur_available_nums.count(cur_num) == 1 && data[i * 9 + j] == 0) {
+						data[i * 9 + j] = cur_num;
+						cur_guess->changed_indices.push_back(i * 9 + j);
+						--rem_elem_num;
+					}
+				}
+			}
+		}
+
+	}
+
+	for (int row_start = 0; row_start < 9; row_start += 3) {
+		for (int col_start = 0; col_start < 9; col_start += 3) {
+			// check each square
+			std::map<int, int> each_num_possibilities;
+			for (int i = row_start; i < row_start + 3; ++i) {
+				for (int j = col_start; j < col_start + 3; ++j) {
+					auto cur_available_nums = sudoku_table_available_nums[9 * i + j];
+					for (const auto& cur_elem : cur_available_nums) {
+						++each_num_possibilities[cur_elem];
+					}
+				}
+			}
+
+			for (int cur_num = 1; cur_num < 10; ++cur_num) {
+				if (each_num_possibilities[cur_num] == 1) {
+					// hidden single found in cur square
+					for (int i = row_start; i < row_start + 3; ++i) {
+						for (int j = col_start; j < col_start + 3; ++j) {
+							auto cur_available_nums = sudoku_table_available_nums[9 * i + j];
+							if (cur_available_nums.count(cur_num) == 1 && data[i * 9 + j] == 0) {
+								data[i * 9 + j] = cur_num;
+								cur_guess->changed_indices.push_back(i * 9 + j);
+								--rem_elem_num;
+							}
+						}
+					}
+				}
+			}
+
+		}
+	}
+
+	return contradiction;
+}
+
 void Sudoku::solve(bool print_on, int print_every) {
 	int prev_rem_elem_num{ 0 };
 	int new_elem_found{ 0 };
 	int count{ 0 };
 	do {
-		/*if (count == 17) {
-			std::cout << "for debugging\n";
-		}*/
 		prev_rem_elem_num = rem_elem_num;
-		int contradiction = one_step();
+		// int contradiction = one_step();
+		int contradiction = one_step_v2();
 		new_elem_found = prev_rem_elem_num - rem_elem_num;
 		if (contradiction) {
 			auto cur_guess = get_cur_guess();
@@ -220,5 +393,70 @@ void Sudoku::solve(bool print_on, int print_every) {
 		}
 		++count;
 	} while (rem_elem_num > 0 && count < 1000000);
+}
+
+int Sudoku::check_initial_sudoku_table() {
+	int error{ 0 };
+	for (int i = 0; i < 9; ++i) {
+		for (int j = 0; j < 9; ++j) {
+			std::set<int> available_numbers{ 1,2,3,4,5,6,7,8,9 };
+			/*if (9 * i + j == 49) {
+				std::cout << "for debugging\n";
+			}*/
+			// check same row
+			for (int k = 0; k < 9; ++k) {
+				if (9 * i + k == 9 * i + j) {
+					continue;
+				}
+				int cur_num = data[9 * i + k];
+				if (cur_num != 0) {
+					if (available_numbers.count(cur_num)) {
+						available_numbers.erase(cur_num);
+					}
+				}
+			}
+
+			// check same column
+			for (int k = 0; k < 9; ++k) {
+				if (9 * k + j == 9 * i + j) {
+					continue;
+				}
+				int cur_num = data[9 * k + j];
+				if (cur_num != 0) {
+					if (available_numbers.count(cur_num)) {
+						available_numbers.erase(cur_num);
+					}
+				}
+			}
+
+			// check same square
+			int row_start = static_cast<int>(i / 3) * 3;
+			int col_start = static_cast<int>(j / 3) * 3;
+			for (int k = 0; k < 3; ++k) {
+				for (int m = 0; m < 3; ++m) {
+					if ((row_start + k) * 9 + (col_start + m) == 9 * i + j) {
+						continue;
+					}
+					int cur_num = data[(row_start + k) * 9 + (col_start + m)];
+					if (cur_num != 0) {
+						if (available_numbers.count(cur_num)) {
+							available_numbers.erase(cur_num);
+						}
+					}
+				}
+			}
+
+			if (data[9 * i + j] == 0 && available_numbers.size() == 0) {
+				error = 1;
+				return error;
+			}
+			else if (data[9 * i + j] != 0 && available_numbers.count(data[9 * i + j]) == 0) {
+				error = 1;
+				return error;
+			}
+			
+		}
+	}
+	return error;
 }
 
