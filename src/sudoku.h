@@ -12,6 +12,7 @@
 class Sudoku {
 public:
 	Sudoku(const std::string& data_in);
+	Sudoku(const std::array<int, 81>& data_in);
 
 
 	void print_data() const;

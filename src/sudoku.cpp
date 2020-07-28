@@ -21,6 +21,15 @@ Sudoku::Sudoku(const std::string& data_in) {
 	}
 }
 
+Sudoku::Sudoku(const std::array<int, 81>& data_in) {
+	for (int i = 0; i < 81; ++i) {
+		data[i] = data_in[i];
+		if (data[i] != 0) {
+			--rem_elem_num;
+		}
+	}
+}
+
 Tree* Sudoku::get_cur_guess() {
 	Tree* cur_estimate = &top_estimate_start;
 	while (cur_estimate->children_.size() != 0) {
@@ -150,7 +159,6 @@ int Sudoku::one_step_v2() {
 	for (int i = 0; i < 9; ++i) {
 		for (int j = 0; j < 9; ++j) {
 			if (data[i * 9 + j] == 0) {
-				int sum_of_possible_nums{ 135 };  // 11+12+..+18+19
 				std::set<int> available_nums{ 1,2,3,4,5,6,7,8,9 };
 				std::set<int> forbidden_nums{};
 				std::map<int, int> forbidden_nums_idx{};
