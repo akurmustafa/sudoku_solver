@@ -3,6 +3,7 @@
 
 #include "src/tree.h"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <iostream>
@@ -13,21 +14,19 @@
 
 Sudoku::Sudoku(const std::string& data_in) {
 	assert(data_in.size() == 81 && "input string is not valid!!");
-	for (int i = 0; i < 81; ++i) {
+	std::transform(data_in.begin(), data_in.end(), data.begin(), [](auto elem) {return elem - '0'; });
+	rem_elem_num = std::count(data.begin(), data.end(), 0);
+	/*for (int i = 0; i < 81; ++i) {
 		data[i] = data_in[i] - '0';
 		if (data[i] != 0) {
 			--rem_elem_num;
 		}
-	}
+	}*/
 }
 
 Sudoku::Sudoku(const std::array<int, 81>& data_in) {
-	for (int i = 0; i < 81; ++i) {
-		data[i] = data_in[i];
-		if (data[i] != 0) {
-			--rem_elem_num;
-		}
-	}
+	std::copy(data_in.begin(), data_in.end(), data.begin());
+	rem_elem_num = std::count(data.begin(), data.end(), 0);
 }
 
 Tree* Sudoku::get_cur_guess() {
@@ -58,98 +57,14 @@ void Sudoku::print_data() const {
 }
 
 int Sudoku::check_map(const std::map<int, int>& cur_map) {
-	int contradiction{ 0 };
-	for (const auto& cur_elem : cur_map) {
-		if (cur_elem.second > 1) {
-			contradiction = 1;
-			return 1;
-		}
+	if (std::any_of(cur_map.begin(), cur_map.end(), [](auto elem) {return elem.second > 1; })) {
+		return 1;
 	}
-	return contradiction;
+	else {
+		return 0;
+	}
 }
 
-int Sudoku::one_step() {
-	best_possible_estimate_num = 9;
-	int contradiction{ 0 };
-	auto cur_guess = get_cur_guess();
-	for (int i = 0; i < 9; ++i) {
-		for (int j = 0; j < 9; ++j) {
-			if (data[i * 9 + j] == 0) {
-				int sum_of_possible_nums{ 135 };  // 11+12+..+18+19
-				std::set<int> forbidden_nums{};
-				std::map<int, int> forbidden_nums_idx{};
-				// check same row
-				for (int m = 0; m < 9; ++m) {
-					int cur_idx = i * 9 + m;
-					int cur_val = data[cur_idx];
-					if (cur_val != 0) {
-						forbidden_nums.insert(cur_val);
-						++forbidden_nums_idx[cur_val];
-					}
-				}
-				contradiction = check_map(forbidden_nums_idx);
-				if (contradiction) {
-					return contradiction;
-				}
-
-				forbidden_nums_idx.clear();
-				// check same column
-				for (int m = 0; m < 9; ++m) {
-					int cur_idx = m * 9 + j;
-					int cur_val = data[cur_idx];
-					if (cur_val != 0) {
-						forbidden_nums.insert(cur_val);
-						++forbidden_nums_idx[cur_val];
-					}
-				}
-				contradiction = check_map(forbidden_nums_idx);
-				if (contradiction) {
-					return contradiction;
-				}
-
-				forbidden_nums_idx.clear();
-				// check same square
-				int row_start = (i / 3) * 3;
-				int col_start = (j / 3) * 3;
-				for (int m = 0; m < 3; ++m) {
-					for (int n = 0; n < 3; ++n) {
-						int cur_idx = (row_start + m) * 9 + col_start + n;
-						int cur_val = data[cur_idx];
-						if (cur_val != 0) {
-							forbidden_nums.insert(cur_val);
-							++forbidden_nums_idx[cur_val];
-						}
-					}
-				}
-				contradiction = check_map(forbidden_nums_idx);
-				if (contradiction) {
-					return contradiction;
-				}
-
-				if (forbidden_nums.size() == 9) {
-					contradiction = 1;
-					return contradiction;
-				}
-				if (best_possible_estimate_num > 9 - forbidden_nums.size()) {
-					best_possible_estimate_num = 9 - forbidden_nums.size();
-					best_estimate_idx = i * 9 + j;
-					best_estimate_forbiddens = forbidden_nums;
-				}
-				if (forbidden_nums.size() == 8) {  // we can determine number now
-					int sum_of_forbiddens{ 0 };
-					for (auto cur_forbidden : forbidden_nums) {
-						sum_of_forbiddens += (10 + cur_forbidden);
-					}
-					data[i * 9 + j] = sum_of_possible_nums - sum_of_forbiddens - 10;
-					cur_guess->changed_indices.push_back(i * 9 + j);
-					--rem_elem_num;
-				}
-
-			}
-		}
-	}
-	return contradiction;
-}
 
 int Sudoku::one_step_v2() {
 	best_possible_estimate_num = 9;
@@ -467,4 +382,3 @@ int Sudoku::check_initial_sudoku_table() {
 	}
 	return error;
 }
-
